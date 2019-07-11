@@ -28,6 +28,11 @@ class Economy:
         self.c = [self.C[0]/self.L[0]]                                                              # per capita consumption, thosands of 2005 US dollars
         self.U = [(np.pow(self.c[0],1-elasticity_marginal_utility))/(1-elasticity_marginal_utility) + 1]
 
+        self.E_ind = [self.sigma[0]*(1-self.mu[0])*self.Y]
+        self.E_land = [1.1]                                                          # Carbon emissions from land use (ie, deforestation), GtC per period
+        self.E = [84.1910]
+        self.Tax_tau = self.BC[0]*pow(self.mu[0],exponent_emission_reduction_theta2-1)
+
 
     def abatement_phi(time,phi0=1,phi5=1,phi10=1,phi15=1,phimax=1):
         if time < 5:
