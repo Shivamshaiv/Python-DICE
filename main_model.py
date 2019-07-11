@@ -3,7 +3,8 @@ import math
 
 class DICE_model:
     def __init__(self,social_time_prefrence_rate_rho=0.015,elasticity_marginal_utility_alpha=1.5,
-    coef_on_damage_exponent_pi2 = 0.0028,damage_exponent_epsilon = 2,exponent_emission_reduction_theta2 = 2.8,production_gamma=0.300):
+    coef_on_damage_exponent_pi2 = 0.0028,damage_exponent_epsilon = 2,exponent_emission_reduction_theta2 = 2.8,
+    production_gamma=0.300,saving_rate_s=0.22):
         self.time = 1
         self.L = [6411]                                                                                   # World Population in millions
         self.c = [self.C[0]/self.L[0]]                                                                        # per capita consumption, thosands of 2005 US dollars
@@ -27,6 +28,7 @@ class DICE_model:
         self.Y = productivity(self.A[0],self.K[0],self.L[0],production_gamma)
         #self.Q = [((1 - self.omega)*(1 - self.lmbda))*self.Y]
         self.Q = [55.34]
+        self.I = saving_rate_s * self.Q[0]
 
 
     def abatement_phi(time,phi0=1,phi5=1,phi10=1,phi15=1,phimax=1):
