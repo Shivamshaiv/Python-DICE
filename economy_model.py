@@ -43,6 +43,31 @@ class Economy:
         self.F_ex0 = [0.83]                                                         #  Non-CO2 forcings in 2005
         self.F_ex10 = [0.30]                                                        #  Estimate of non-CO2 forcings in 2100
 
+        ##### Connstants ############
+        self.social_time_prefrence_rate_rho=0.015
+        self.elasticity_marginal_utility_alpha=1.5
+        self.coef_on_damage_exponent_pi2 = 0.0028
+        self.damage_exponent_epsilon = 2
+        self.exponent_emission_reduction_theta2 = 2.8
+        self.production_gamma = 0.300
+        self.saving_rate_s = 0.22
+        self.preindustrail_carbon_Mpi = 592
+        self.L_Tmax = 8700                                 #  Asymptotic population in the last period
+        self.tech_change_decline_deltaa = 0.9
+        self.depreciation_technological_change_δK = 0.1
+        self.decline_rate_decarbonisation_σd1 = 0.006
+        self.temp_increase_doubling_co2 = 3.2              # Temperature increase (◦C) from a doubling of preindustrial CO2.
+        self.costdecinline_backstop_tech_percent_BCg = 0.05
+        self.fossil_remaining_Ccum = 6000
+        self.pop_growth_pop_perdecade_Lg = 0.5
+        self.declinerate_growth_productivity_deltab = 0.2
+
+        # Climate Connstants
+        self.F2CO2 = 3.8          #  Forcing from a doubling of preindustrial CO2
+        self.ξ1 = 0.220           #  Inverse of thermal capacity of the atmosphere and the upper ocean.
+        self.ξ2 = 0.310           #  Ratio of the thermal capacity of the deep oceans to the transfer rate from the shallow ocean to the deep ocean
+        self.ξ3 = 0.050           #  Transfer rate of heat from the upper ocean to the deep ocean.
+
     def abatement_phi(time,phi0=1,phi5=1,phi10=1,phi15=1,phimax=1):
         if time < 5:
             return phi5 + (phi0-phi5)*np.exp(-0.25*time)
