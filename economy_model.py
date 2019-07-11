@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-class DICE_model:
+class Economy:
     def __init__(self,social_time_prefrence_rate_rho=0.015,elasticity_marginal_utility_alpha=1.5,
     coef_on_damage_exponent_pi2 = 0.0028,damage_exponent_epsilon = 2,exponent_emission_reduction_theta2 = 2.8,
     production_gamma=0.300,saving_rate_s=0.22):
