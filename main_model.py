@@ -24,7 +24,7 @@ class DICE_model:
         self.Eind = [(self.sigma[0])*(1-self.mu[0])*productivity(self.A[0],self.K[0],self.L[0],production_gamma)]
         self.lmbda = [(np.pow(abatement_phi(self.time),1-exponent_emission_reduction_theta2)*self.BC[0]*
         np.pow(self.mu[0],exponent_emission_reduction_theta2)*self.sigma[0])/exponent_emission_reduction_theta2]
-        self.Y =
+        self.Y = productivity(self.A[0],self.K[0],self.L[0],production_gamma)
         #self.Q = [((1 - self.omega)*(1 - self.lmbda))*self.Y]
         self.Q = [55.34]
 
