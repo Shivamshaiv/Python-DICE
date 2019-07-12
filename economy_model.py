@@ -1,5 +1,9 @@
 import numpy as np
+from util import compute_external_forcing
+from util import update_carbon_masses
 import math
+
+
 
 class Economy:
     def __init__(self,social_time_prefrence_rate_rho=0.015,elasticity_marginal_utility_alpha=1.5,
@@ -40,8 +44,9 @@ class Economy:
         self.M_lo = [10100]                                                          # Mass of carbon in the lower ocean in 2005
 
         self.T_lo = [0.0068]                                                        #  Temperature change in the lower ocean from 1900 until 2000
-        self.F_ex0 = [0.83]                                                         #  Non-CO2 forcings in 2005
-        self.F_ex10 = [0.30]                                                        #  Estimate of non-CO2 forcings in 2100
+        self.F_ex = [0.83]
+        self.F_ex0 = self.F_ex[0]                                                         #  Non-CO2 forcings in 2005
+        self.F_ex10 = 0.30                                                        #  Estimate of non-CO2 forcings in 2100
 
         ##### Connstants ############
         self.social_time_prefrence_rate_rho=0.015
@@ -81,14 +86,54 @@ class Economy:
     def productivity(A,K,L,gamma):
         return A*np.pow(K,gamma)*np.pow(L,1-gamma)
 
+    def compute_external_forcing(self,time):
+        if time > 10:
+            return self.F_ex10
+        else:
+            return self.F_ex0 + 0.1*(self.F_ex0-self.F_ex10)*time
+
+    def update_carbon_masses(self):
+        _b11, _b12, _b13 = 0.810712, 0.189288, 0
+        _b21, _b22, _b23 = 0.097213, 0.852787, .05
+        _b31, _b32, _b33 = 0, 0.003119, 0.996881
+        self.carbon_matrix = np.array([
+            _b11, _b12, _b13,
+            _b21, _b22, _b23,
+            _b31, _b32, _b33,
+        ]).reshape(3, 3)
+
+        self.mass_matrix = np.array([[self.M_at[-1]],[self.M_up[-1]],[self.M_lo[-1]]])
+        self.emmision_matrix = np.array([[self.E[-1]],[0],[0]])
+
+        new_masses = np.matmul(self.carbon_matrix,self.mass_matrix) + self.emmision_matrix
+        self.M_at.append(new_masses[0][0])
+        self.M_up.append(new_masses[1][0])
+        self.M_lo.append(new_masses[2][0])
+
     def loop(self,t=1):
         for time in range(t):
+            self.time = time
             self.L.append(np.sqrt(self.L[-1]*self.L_Tmax))
-            self.T_lo.append(self.T_lo[-1]+self.ξ3(T_at[-1]-T_lo[-1]))
+            self.T_lo.append(self.T_lo[-1]+(self.ξ3*(self.T_at[-1]-self.T_lo[-1])))
             const_lamb = self.F2CO2/self.temp_increase_doubling_co2
-            self.F
+            self.F_ex.append(compute_external_forcing(self,time))
+
+            # Update A(t)
+            self.A_g.append(self.A_g[0]*np.exp(-self.tech_change_decline_deltaa*time*np.exp(-self.declinerate_growth_productivity_deltab*time)))
+            self.A.append((self.A[-1])/(1-self.A_g[-2]))
+
+            # Update K(t)
+
+
+            # Emisssions
+            #self.E_land.append(self.E_land[0]*np.power(0.8,time))
+
+            update_carbon_masses(self)
+            F_eta = 1
+            self.F = F_eta*(np.log2(self.M_at[-1]/self.preindustrail_carbon_Mpi)) + self.F_ex[-1]
             self.T_at.append(self.T_at[-1]+self.ξ1(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2(self.T_at[-1]-self.T_lo[-2])))
             self.omega.append(1 - (1/(1+(coef_on_damage_exponent_pi2*np.power(self.T_at[-1],damage_exponent_epsilon)))))
+
 
 model = Economy()
 print(model.__dict__)
