@@ -2,7 +2,7 @@ import numpy as np
 from util import compute_external_forcing
 from util import update_carbon_masses
 import math
-
+import matplotlib.pyplot as plt
 
 
 class Economy:
@@ -48,6 +48,8 @@ class Economy:
         self.F_ex0 = self.F_ex[0]                                                         #  Non-CO2 forcings in 2005
         self.F_ex10 = 0.30                                                        #  Estimate of non-CO2 forcings in 2100
 
+
+
         ##### Connstants ############
         self.social_time_prefrence_rate_rho=0.015
         self.elasticity_marginal_utility_alpha=1.5
@@ -72,6 +74,9 @@ class Economy:
         self.ξ1 = 0.220           #  Inverse of thermal capacity of the atmosphere and the upper ocean.
         self.ξ2 = 0.310           #  Ratio of the thermal capacity of the deep oceans to the transfer rate from the shallow ocean to the deep ocean
         self.ξ3 = 0.050           #  Transfer rate of heat from the upper ocean to the deep ocean.
+
+        self.F = [self.F2CO2*(np.log2(self.M_at[0]/self.preindustrail_carbon_Mpi)) + self.F_ex0]       # Forcing due to CO2
+
 
     def abatement_phi(time,phi0=1,phi5=1,phi10=1,phi15=1,phimax=1):
         if time < 5:
@@ -106,6 +111,7 @@ class Economy:
         self.emmision_matrix = np.array([[self.E[-1]],[0],[0]])
 
         new_masses = np.matmul(self.carbon_matrix,self.mass_matrix) + self.emmision_matrix
+
         self.M_at.append(new_masses[0][0])
         self.M_up.append(new_masses[1][0])
         self.M_lo.append(new_masses[2][0])
@@ -129,13 +135,17 @@ class Economy:
             #self.E_land.append(self.E_land[0]*np.power(0.8,time))
 
             update_carbon_masses(self)
-            F_eta = 1
-            self.F = F_eta*(np.log2(self.M_at[-1]/self.preindustrail_carbon_Mpi)) + self.F_ex[-1]
-            self.T_at.append(self.T_at[-1]+self.ξ1(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2(self.T_at[-1]-self.T_lo[-2])))
-            self.omega.append(1 - (1/(1+(coef_on_damage_exponent_pi2*np.power(self.T_at[-1],damage_exponent_epsilon)))))
+            F_eta = 3.8    #Forced CO2 doubling.
+            self.F.append(F_eta*(np.log2(self.M_at[-1]/self.preindustrail_carbon_Mpi)) + self.F_ex[-1])
+
+            self.T_at.append(self.T_at[-1]+self.ξ1*(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2*(self.T_at[-1]-self.T_lo[-2])))
+            self.omega.append(1 - (1/(1+(self.coef_on_damage_exponent_pi2*np.power(self.T_at[-1],self.damage_exponent_epsilon)))))
+            #print(self.T_at)
 
 
 model = Economy()
-print(model.__dict__)
-model.loop(2)
-print(model.__dict__)
+#print(model.__dict__)
+model.loop(100)
+#print(model.__dict__)
+plt.plot(model.T_at)
+plt.show()

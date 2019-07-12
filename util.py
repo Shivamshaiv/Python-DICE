@@ -33,6 +33,7 @@ def update_carbon_masses(self):
     self.emmision_matrix = np.array([[self.E[-1]],[0],[0]])
 
     new_masses = np.matmul(self.carbon_matrix,self.mass_matrix) + self.emmision_matrix
+
     self.M_at.append(new_masses[0][0])
     self.M_up.append(new_masses[1][0])
     self.M_lo.append(new_masses[2][0])
