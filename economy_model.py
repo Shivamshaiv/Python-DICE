@@ -15,8 +15,8 @@ class Economy:
         self.K = [137]                      #  2005 capital value
         self.sigma_g = [0.158]              #  Initial rate of decline of carbon intensity per period
         self.sigma = [0.14452]              #  2005 Effective Carbon Intensity
-        self.T_at = 0.83                    #  Temperature change from 1900 until 2000                                                           # Temperature change from 1900 until 2000
-        self.omega = [1 - (1/(1+(coef_on_damage_exponent_pi2*np.power(self.T_at,damage_exponent_epsilon))))]
+        self.T_at = [0.83]                    #  Temperature change from 1900 until 2000                                                           # Temperature change from 1900 until 2000
+        self.omega = [1 - (1/(1+(coef_on_damage_exponent_pi2*np.power(self.T_at[0],damage_exponent_epsilon))))]
         self.BC = [1.26]                    # Cost of backstop technology
         self.mu = [0]
         self.Eind = [(self.sigma[0])*(1-self.mu[0])*productivity(self.A[0],self.K[0],self.L[0],production_gamma)]
@@ -81,5 +81,16 @@ class Economy:
     def productivity(A,K,L,gamma):
         return A*np.pow(K,gamma)*np.pow(L,1-gamma)
 
+    def loop(self,t=1):
+        for time in range(t):
+            self.L.append(np.sqrt(self.L[-1]*self.L_Tmax))
+            self.T_lo.append(self.T_lo[-1]+self.ξ3(T_at[-1]-T_lo[-1]))
+            const_lamb = self.F2CO2/self.temp_increase_doubling_co2
+            self.F
+            self.T_at.append(self.T_at[-1]+self.ξ1(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2(self.T_at[-1]-self.T_lo[-2])))
+            self.omega.append(1 - (1/(1+(coef_on_damage_exponent_pi2*np.power(self.T_at[-1],damage_exponent_epsilon)))))
+
 model = Economy()
+print(model.__dict__)
+model.loop(2)
 print(model.__dict__)
