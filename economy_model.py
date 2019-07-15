@@ -1,6 +1,8 @@
 import numpy as np
 from util import compute_external_forcing
 from util import update_carbon_masses
+from util import productivity
+from util import abatement_phi
 import math
 import matplotlib.pyplot as plt
 
@@ -26,7 +28,7 @@ class Economy:
         self.Eind = [(self.sigma[0])*(1-self.mu[0])*productivity(self.A[0],self.K[0],self.L[0],production_gamma)]
         self.lmbda = [(np.power(abatement_phi(self.time),1-exponent_emission_reduction_theta2)*self.BC[0]*
         np.power(self.mu[0],exponent_emission_reduction_theta2)*self.sigma[0])/exponent_emission_reduction_theta2]
-        self.Y = productivity(self.A[0],self.K[0],self.L[0],production_gamma)
+        self.Y = [productivity(self.A[0],self.K[0],self.L[0],production_gamma)]
         #self.Q = [((1 - self.omega)*(1 - self.lmbda))*self.Y]
         self.Q = [55.34]
         self.I = [saving_rate_s * self.Q[0]]
@@ -34,7 +36,7 @@ class Economy:
         self.c = [self.C[0]/self.L[0]]                                                              # per capita consumption, thosands of 2005 US dollars
         self.U = [(np.power(self.c[0],1-elasticity_marginal_utility_alpha))/(1-elasticity_marginal_utility_alpha) + 1]
 
-        self.E_ind = [self.sigma[0]*(1-self.mu[0])*self.Y]
+        self.E_ind = [self.sigma[0]*(1-self.mu[0])*self.Y[0]]
         self.E_land = [1.1]                                                          # Carbon emissions from land use (ie, deforestation), GtC per period
         self.E = [84.1910]
         self.Tax_tau = self.BC[0]*pow(self.mu[0],exponent_emission_reduction_theta2-1)  # Carbon Tax
@@ -48,11 +50,9 @@ class Economy:
         self.F_ex0 = self.F_ex[0]                                                         #  Non-CO2 forcings in 2005
         self.F_ex10 = 0.30                                                        #  Estimate of non-CO2 forcings in 2100
 
-
-
         ##### Connstants ############
-        self.social_time_prefrence_rate_rho=0.015
-        self.elasticity_marginal_utility_alpha=1.5
+        self.social_time_prefrence_rate_rho = 0.015
+        self.elasticity_marginal_utility_alpha= 1.5
         self.coef_on_damage_exponent_pi2 = 0.0028
         self.damage_exponent_epsilon = 2
         self.exponent_emission_reduction_theta2 = 2.8
@@ -89,7 +89,7 @@ class Economy:
             return phi15 + (phimax-phi15)*np.exp(-0.25*time)
 
     def productivity(A,K,L,gamma):
-        return A*np.pow(K,gamma)*np.pow(L,1-gamma)
+        return A*np.power(K,gamma)*np.power(L,1-gamma)
 
     def compute_external_forcing(self,time):
         if time > 10:
@@ -129,10 +129,14 @@ class Economy:
             self.A.append((self.A[-1])/(1-self.A_g[-2]))
 
             # Update K(t)
+            self.K.append(self.I[-1]+((1-self.depreciation_technological_change_δK)*self.K[-1]))
+
+            #Update productivity
+            self.Y.append(productivity(self.A[-1],self.K[-1],self.L[-1],self.production_gamma))
 
 
             # Emisssions
-            #self.E_land.append(self.E_land[0]*np.power(0.8,time))
+            self.E_land.append(self.E_land[0]*np.power(0.8,time))
 
             update_carbon_masses(self)
             F_eta = 3.8    #Forced CO2 doubling.
@@ -140,12 +144,17 @@ class Economy:
 
             self.T_at.append(self.T_at[-1]+self.ξ1*(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2*(self.T_at[-1]-self.T_lo[-2])))
             self.omega.append(1 - (1/(1+(self.coef_on_damage_exponent_pi2*np.power(self.T_at[-1],self.damage_exponent_epsilon)))))
-            #print(self.T_at)
+
+            ### Abetement Function #To do
+            self.BC.append(self.BC[0]*np.power(1-self.costdecinline_backstop_tech_percent_BCg))
+
+            self.lmbda.append[(np.power(abatement_phi(self.time),1-exponent_emission_reduction_theta2)*self.BC[-1]*
+            np.power(self.mu[-1],exponent_emission_reduction_theta2)*self.sigma[-1])/exponent_emission_reduction_theta2]
 
 
 model = Economy()
 #print(model.__dict__)
 model.loop(100)
 #print(model.__dict__)
-plt.plot(model.T_at)
+plt.plot(model.K)
 plt.show()

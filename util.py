@@ -11,7 +11,7 @@ def abatement_phi(time,phi0=1,phi5=1,phi10=1,phi15=1,phimax=1):
         return phi15 + (phimax-phi15)*np.exp(-0.25*time)
 
 def productivity(A,K,L,gamma):
-    return A*np.pow(K,gamma)*np.pow(L,1-gamma)
+    return A*np.power(K,gamma)*np.power(L,1-gamma)
 
 def compute_external_forcing(self,time):
     if time > 10:
