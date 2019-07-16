@@ -15,7 +15,8 @@ def productivity(A,K,L,gamma):
 
 def compute_external_forcing(self,time):
     if time > 10:
-        return self.F_ex10
+        return self.F_ex0 + 0.1*(self.F_ex0-self.F_ex10)*time
+        #return self.F_ex10
     else:
         return self.F_ex0 + 0.1*(self.F_ex0-self.F_ex10)*time
 

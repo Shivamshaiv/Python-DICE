@@ -13,7 +13,7 @@ class Economy:
     production_gamma=0.300,saving_rate_s=0.22,preindustrail_carbon_Mpi=592):
         productivity = lambda A,K,L,gamma : A*np.power(K,gamma)*np.power(L,1-gamma)                     # Productivity Function
         abatement_phi = lambda time : 1                                                                # Temp abatement.
-        self.time = 1
+        self.time = 0
         self.L = [6411]                                                                                   # World Population in millions
         self.R = [1/(1+social_time_prefrence_rate_rho)]                                                     # Social Time Discount factor
         self.A = [0.0303220]
@@ -37,10 +37,10 @@ class Economy:
         self.U = [(np.power(self.c[0],1-elasticity_marginal_utility_alpha))/(1-elasticity_marginal_utility_alpha) + 1]
         self.test = []
 
-        #self.E_ind = [self.sigma[0]*(1-self.mu[0])*self.Y[0]]
-        self.E_ind = [84.1910-1.1]
+        self.E_ind = [self.sigma[0]*self.Y[0]]
+        #self.E_ind = [84.1910-1.1]
         self.E_land = [1.1]                                                          # Carbon emissions from land use (ie, deforestation), GtC per period
-        self.E = [84.1910]
+        self.E = [self.E_ind[-1]+self.E_land[-1]]
         self.Tax_tau = self.BC[0]*pow(self.mu[0],exponent_emission_reduction_theta2-1)  # Carbon Tax
 
         self.M_at = [787]                                                            # Mass of carbon in the atmosphere in 2005
@@ -55,14 +55,14 @@ class Economy:
         self.W = [self.L[-1]*self.U[-1]*self.R[-1]]
 
         ##### Connstants ############
-        self.social_time_prefrence_rate_rho = 0.015
-        self.elasticity_marginal_utility_alpha= 1.5
-        self.coef_on_damage_exponent_pi2 = 0.0028
-        self.damage_exponent_epsilon = 2
-        self.exponent_emission_reduction_theta2 = 2.8
-        self.production_gamma = 0.300
-        self.saving_rate_s = 0.22
-        self.preindustrail_carbon_Mpi = 592
+        self.social_time_prefrence_rate_rho = social_time_prefrence_rate_rho
+        self.elasticity_marginal_utility_alpha= elasticity_marginal_utility_alpha
+        self.coef_on_damage_exponent_pi2 = coef_on_damage_exponent_pi2
+        self.damage_exponent_epsilon = damage_exponent_epsilon
+        self.exponent_emission_reduction_theta2 = exponent_emission_reduction_theta2
+        self.production_gamma = production_gamma
+        self.saving_rate_s = saving_rate_s
+        self.preindustrail_carbon_Mpi = preindustrail_carbon_Mpi
         self.L_Tmax = 8700                                 #  Asymptotic population in the last period
         self.tech_change_decline_deltaa = 0.9
         self.depreciation_technological_change_δK = 0.1
@@ -110,8 +110,8 @@ class Economy:
             self.E.append(self.E_land[-1]+self.E_ind[-1])
 
             update_carbon_masses(self)
-            F_eta = 1.5    #Elasticity Demand
-            self.F.append(F_eta*(np.log2(self.M_at[-1]/self.preindustrail_carbon_Mpi)) + self.F_ex[-1])
+            F_eta = 3.2    #Forcing of CO2
+            self.F.append(F_eta*(np.log(self.M_at[-1]/self.preindustrail_carbon_Mpi)) + self.F_ex[-1])
 
             self.T_at.append(self.T_at[-1]+self.ξ1*(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2*(self.T_at[-1]-self.T_lo[-2])))
             self.omega.append(1 - (1/(1+(self.coef_on_damage_exponent_pi2*np.power(self.T_at[-1],self.damage_exponent_epsilon)))))
@@ -131,16 +131,18 @@ class Economy:
             self.C.append(self.Q[-1]-self.I[-1])
             self.c.append(self.C[-1]/self.L[-1])
 
+            #Update the utility
+            self.U.append((np.power(self.c[-1],1-self.elasticity_marginal_utility_alpha)/(1-self.elasticity_marginal_utility_alpha))+1)
 
             self.test.append((1-self.omega[-1])*(1-self.lmbda[-1]))
 
-'''
+
 model = Economy()
-print(model.K[-1])
+#print(model.K[-1])
 #print(model.__dict__)
 model.loop(100)
+#print(model.U)
 #print(model.__dict__)
-plt.plot(model.A_g)
-print(model.Q)
-plt.show()
-'''
+#plt.plot(model.A_g)
+
+#plt.show()
