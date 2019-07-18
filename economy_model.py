@@ -16,6 +16,7 @@ class Economy:
         self.start_year = start_year                                                 # The starting year of the simulation where all values are caliberated.
         self.time = 0
         self.L = [6411]                                                                                   # World Population in millions
+        self.L_g = [0.5]
         self.R = [1/(1+social_time_prefrence_rate_rho)]                                                     # Social Time Discount factor
         self.A = [0.0303220]
         self.A_g = [0.16]                   #  Initial growth rate of TFP per decade
@@ -24,6 +25,7 @@ class Economy:
         self.sigma = [0.14452]              #  2005 Effective Carbon Intensity
         self.T_at = [0.83]                    #  Temperature change from 1900 until 2000
         self.omega = [1 - (1/(1+(coef_on_damage_exponent_pi2*np.power(self.T_at[0],damage_exponent_epsilon))))]
+        self.tipping_omega = [1-np.power((1+np.power(self.T_at[-1]/20.46,2)+np.power(self.T_at[-1]/6.081,6.754)),-1)]
         self.BC = [1.26]                    # Cost of backstop technology
         self.mu = [1]
         self.Eind = [(self.sigma[0])*(1-self.mu[0])*productivity(self.A[0],self.K[0],self.L[0],production_gamma)]
@@ -42,6 +44,7 @@ class Economy:
         #self.E_ind = [84.1910-1.1]
         self.E_land = [1.1]                                                          # Carbon emissions from land use (ie, deforestation), GtC per period
         self.E = [self.E_ind[-1]+self.E_land[-1]]
+        self.E_cum = [self.E[-1]]
         self.Tax_tau = self.BC[0]*pow(self.mu[0],exponent_emission_reduction_theta2-1)  # Carbon Tax
 
         self.M_at = [787]                                                            # Mass of carbon in the atmosphere in 2005
@@ -83,32 +86,34 @@ class Economy:
         self.F = [self.F2CO2*(np.log2(self.M_at[0]/self.preindustrail_carbon_Mpi)) + self.F_ex0]       # Forcing due to CO2
 
 
-    def loop(self,t=1):
+    def loop(self,t=1,tipping_damage = False):
         for time in range(t):
             self.time = time
-            self.L.append(np.sqrt(self.L[-1]*self.L_Tmax))
+            self.L_g.append((np.exp(self.L_g[0]*(time+1))-1)/(np.exp(self.L_g[0]*(time+1))-0))
+            self.L.append(self.L[-1]*(np.power(self.L_Tmax/self.L[-1],self.L_g[-1])))
             self.R.append(1/np.power(1+self.social_time_prefrence_rate_rho,self.time))
             self.T_lo.append(self.T_lo[-1]+(self.ξ3*(self.T_at[-1]-self.T_lo[-1])))
             const_lamb = self.F2CO2/self.temp_increase_doubling_co2
             self.F_ex.append(compute_external_forcing(self,time))
 
             # Update A(t)
-            self.A_g.append(self.A_g[0]*np.exp(-self.tech_change_decline_deltaa*time*np.exp(-self.declinerate_growth_productivity_deltab*time)))
+            self.A_g.append(self.A_g[0]*np.exp(-self.tech_change_decline_deltaa*1*time*np.exp(-self.declinerate_growth_productivity_deltab*time)))
             self.A.append((self.A[-1])/(1-self.A_g[-2]))
 
             # Update K(t)
-            self.K.append(self.I[-1]+((1-self.depreciation_technological_change_δK)*self.K[-1]))
+            self.K.append(self.I[-1]+(np.power((1-self.depreciation_technological_change_δK),1)*(self.K[-1]*1)))
 
             #Update productivity
             self.Y.append(productivity(self.A[-1],self.K[-1],self.L[-1],self.production_gamma))
 
-            self.sigma_g.append(self.sigma_g[-1]*(1-self.decline_rate_decarbonisation_σd1))
+            self.sigma_g.append(self.sigma_g[-1]*(1-self.decline_rate_decarbonisation_σd1)**1)
             self.sigma.append(self.sigma[-1]*(1-self.sigma_g[-2]))
 
             # Emisssions
             self.E_land.append(self.E_land[0]*np.power(0.8,time))
             self.E_ind.append(self.sigma[-1]*1*self.Y[-1])
             self.E.append(self.E_land[-1]+self.E_ind[-1])
+            self.E_cum.append(np.sum(self.E))
 
             update_carbon_masses(self)
             F_eta = 3.2    #Forcing of CO2
@@ -116,6 +121,7 @@ class Economy:
 
             self.T_at.append(self.T_at[-1]+self.ξ1*(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2*(self.T_at[-1]-self.T_lo[-2])))
             self.omega.append(1 - (1/(1+(self.coef_on_damage_exponent_pi2*np.power(self.T_at[-1],self.damage_exponent_epsilon)))))
+            self.tipping_omega.append(1-np.power((1+np.power(self.T_at[-1]/20.46,2)+np.power(self.T_at[-1]/6.081,6.754)),-1))
 
             ### Abetement Function #To do
             self.BC.append(self.BC[0]*np.power(1-self.costdecinline_backstop_tech_percent_BCg,self.time))
@@ -123,7 +129,10 @@ class Economy:
             self.lmbda.append((np.power(abatement_phi(self.time),1-self.exponent_emission_reduction_theta2)*self.BC[-1]*np.power(self.mu[-1],self.exponent_emission_reduction_theta2)*self.sigma[-1])/self.exponent_emission_reduction_theta2)
 
             # Update Q production Function
-            self.Q.append((1-self.omega[-1])*(1-self.lmbda[-1])*self.Y[-1])
+            if tipping_damage:
+                self.Q.append((1-self.tipping_omega[-1])*(1-self.lmbda[-1])*self.Y[-1])
+            else:
+                self.Q.append((1-self.omega[-1])*(1-self.lmbda[-1])*self.Y[-1])
 
             # Update the Investment.
             self.I.append(self.saving_rate_s*self.Q[-1])
