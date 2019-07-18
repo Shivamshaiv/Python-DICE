@@ -1,0 +1,4 @@
+# Python-DICE
+Python  3.6 implementation of  Dynamic Integrated Climate-Economy model (DICE), the model integrates in an end-to-end fashion the economics, carbon cycle, climate science, and impacts in a highly aggregated model that allows a weighing of the costs and benefits of taking steps to slow greenhouse warming. We support the interactive visulisation of the evolved parameters of the model with Plotly.js backend.
+<br><br>
+This work is done as a part of the Climate Change AI Project at <a href="https://mila.quebec/en/"> MILA </a> by <a href="https://mila.quebec/en/person/shivam-patel/"> Shivam Patel </a> under the guidance of <a href="https://mila.quebec/en/person/karthik-mukkavilli/"> Dr S. Karthik Mukkavilli </a> and <a href="https://mila.quebec/en/yoshua-bengio/"> Prof. Yoshua Bengio </a>.
