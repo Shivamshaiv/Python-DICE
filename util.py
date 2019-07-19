@@ -38,3 +38,18 @@ def update_carbon_masses(self):
     self.M_at.append(new_masses[0][0])
     self.M_up.append(new_masses[1][0])
     self.M_lo.append(new_masses[2][0])
+
+def emmision_control_from_carbontax(self,carbon_tax):
+    t5,t10,t15 = carbon_tax
+    if self.time <= 10 and self.time > 5:
+        output = np.power(t5/self.BC[-1],1/(self.exponent_emission_reduction_theta2-1))
+    elif self.time <= 15 and self.time > 10:
+        output = np.power(t10/self.BC[-1],1/(self.exponent_emission_reduction_theta2-1))
+    elif self.time > 15:
+        output = np.power(t15/self.BC[-1],1/(self.exponent_emission_reduction_theta2-1))
+    else:
+        output = 1
+
+    if output > 1:
+        output = 1           # To check that there are no negative emissions.
+    return output

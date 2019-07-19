@@ -3,6 +3,7 @@ from util import compute_external_forcing
 from util import update_carbon_masses
 from util import productivity
 from util import abatement_phi
+from util import emmision_control_from_carbontax
 import math
 import matplotlib.pyplot as plt
 
@@ -86,7 +87,7 @@ class Economy:
         self.F = [self.F2CO2*(np.log2(self.M_at[0]/self.preindustrail_carbon_Mpi)) + self.F_ex0]       # Forcing due to CO2
 
 
-    def loop(self,t=1,tipping_damage = False):
+    def loop(self,t,tipping_damage = False,temp_model = "default",carbon_tax = (0,0,0)):
         for time in range(t):
             self.time = time
             self.L_g.append((np.exp(self.L_g[0]*(time+1))-1)/(np.exp(self.L_g[0]*(time+1))-0))
@@ -111,7 +112,7 @@ class Economy:
 
             # Emisssions
             self.E_land.append(self.E_land[0]*np.power(0.8,time))
-            self.E_ind.append(self.sigma[-1]*1*self.Y[-1])
+            self.E_ind.append(self.sigma[-1]*(1-self.mu[-1])*self.Y[-1])
             self.E.append(self.E_land[-1]+self.E_ind[-1])
             self.E_cum.append(np.sum(self.E))
 
@@ -119,13 +120,18 @@ class Economy:
             F_eta = 3.2    #Forcing of CO2
             self.F.append(F_eta*(np.log(self.M_at[-1]/self.preindustrail_carbon_Mpi)) + self.F_ex[-1])
 
-            self.T_at.append(self.T_at[-1]+self.ξ1*(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2*(self.T_at[-1]-self.T_lo[-2])))
+            if temp_model == "default":
+                self.T_at.append(self.T_at[-1]+self.ξ1*(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2*(self.T_at[-1]-self.T_lo[-2])))
+            elif temp_model == "linear":
+                #denom = (2*2*self.preindustrail_carbon_Mpi) - (0.94796*self.M_at[0]) - (0.00075*self.M_up[0])
+                denom = (2*2*self.preindustrail_carbon_Mpi) - (-0.2*self.M_at[0]) - (0.001*self.M_up[0])
+                self.T_at.append(self.T_at[0]+(self.time)*(self.E_cum[-1])*(self.temp_increase_doubling_co2/(denom)))
             self.omega.append(1 - (1/(1+(self.coef_on_damage_exponent_pi2*np.power(self.T_at[-1],self.damage_exponent_epsilon)))))
             self.tipping_omega.append(1-np.power((1+np.power(self.T_at[-1]/20.46,2)+np.power(self.T_at[-1]/6.081,6.754)),-1))
 
             ### Abetement Function #To do
             self.BC.append(self.BC[0]*np.power(1-self.costdecinline_backstop_tech_percent_BCg,self.time))
-
+            self.mu.append(emmision_control_from_carbontax(self,carbon_tax))
             self.lmbda.append((np.power(abatement_phi(self.time),1-self.exponent_emission_reduction_theta2)*self.BC[-1]*np.power(self.mu[-1],self.exponent_emission_reduction_theta2)*self.sigma[-1])/self.exponent_emission_reduction_theta2)
 
             # Update Q production Function
@@ -144,7 +150,7 @@ class Economy:
             #Update the utility
             self.U.append((np.power(self.c[-1],1-self.elasticity_marginal_utility_alpha)/(1-self.elasticity_marginal_utility_alpha))+1)
 
-            self.test.append((1-self.omega[-1])*(1-self.lmbda[-1]))
+            self.test.append(emmision_control_from_carbontax(self,carbon_tax))
 
 
 model = Economy()
