@@ -87,7 +87,7 @@ class Economy:
         self.F = [self.F2CO2*(np.log2(self.M_at[0]/self.preindustrail_carbon_Mpi)) + self.F_ex0]       # Forcing due to CO2
 
 
-    def loop(self,t,tipping_damage = False,temp_model = "default",carbon_tax = (0,0,0)):
+    def loop(self,t,tipping_damage = False,temp_model = "linear",carbon_tax = (0,0,0)):
         for time in range(t):
             self.time = time
             self.L_g.append((np.exp(self.L_g[0]*(time+1))-1)/(np.exp(self.L_g[0]*(time+1))-0))
@@ -121,7 +121,7 @@ class Economy:
             self.F.append(F_eta*(np.log(self.M_at[-1]/self.preindustrail_carbon_Mpi)) + self.F_ex[-1])
 
             if temp_model == "default":
-                self.T_at.append(self.T_at[-1]+self.ξ1*(self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2*(self.T_at[-1]-self.T_lo[-2])))
+                self.T_at.append(self.T_at[-1]+self.ξ1*((1)*self.F[-1]-const_lamb*self.T_at[-1]-self.ξ2*(self.T_at[-1]-self.T_lo[-2])))
             elif temp_model == "linear":
                 #denom = (2*2*self.preindustrail_carbon_Mpi) - (0.94796*self.M_at[0]) - (0.00075*self.M_up[0])
                 denom = (2*2*self.preindustrail_carbon_Mpi) - (-0.2*self.M_at[0]) - (0.001*self.M_up[0])

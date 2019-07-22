@@ -19,6 +19,8 @@ def compute_external_forcing(self,time):
         return self.F_ex10
     else:
         return self.F_ex0 + 0.1*(self.F_ex0-self.F_ex10)*time
+        #return self.F_ex0
+
 
 def update_carbon_masses(self):
     _b11, _b12, _b13 = 0.810712, 0.189288, 0
@@ -31,7 +33,7 @@ def update_carbon_masses(self):
     ]).reshape(3, 3)
 
     self.mass_matrix = np.array([[self.M_at[-1]],[self.M_up[-1]],[self.M_lo[-1]]])
-    self.emmision_matrix = np.array([[self.E[-1]],[0],[0]])
+    self.emmision_matrix = np.array([[5*self.E[-1]],[0],[0]])
 
     new_masses = np.matmul(self.carbon_matrix,self.mass_matrix) + self.emmision_matrix
 
@@ -51,5 +53,5 @@ def emmision_control_from_carbontax(self,carbon_tax):
         output = 1
 
     if output > 1:
-        output = 1           # To check that there are no negative emissions.
+        output = self.mu[-1]           # To check that there are no negative emissions.
     return output
